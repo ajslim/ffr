@@ -19,6 +19,8 @@ const BACK_FOOT = 3;
 const FOIL = 8;
 const usedButtons = [FRONT_FOOT, MIDDLE, BACK_FOOT, FOIL];
 
+let foilReset = false;
+
 const footworkDefinitionArray = [
     {
         name: 'Step Forward, Step Back',
@@ -102,9 +104,11 @@ let currentFootwork = footworkDefinitionArray[0];
 let stepIndex = 0;
 let successCount = 0;
 let done = false;
+let comboCount = 0;
 
 const successSound = new Audio('success.mp3');
 const failSound = new Audio('fail.mp3');
+const goodSound = new Audio('good.mp3');
 
 const footworkArray = [];
 for (let i = 0; i < 20; i++) {
@@ -134,20 +138,45 @@ function hideTarget() {
     document.getElementById('target').className = '';
 }
 
+function success() {
+    successCount +=1;
+    stepIndex = 0;
 
-function showSuccess() {
-    successSound.pause();
-    successSound.currentTime = 0;
-    successSound.play();
-    document.getElementById('response').innerHTML = '<div class="success">Great!</div>';
+    currentFootwork = footworkArray.shift();
+
+    let randomFootwork = undefined;
+    while (randomFootwork === undefined) {
+        randomFootwork = footworkDefinitionArray[Math.floor(Math.random() * footworkArray.length)];
+    }
+    footworkArray.push(randomFootwork)
+
+    comboCount += 1;
+
+    if (comboCount >= 5) {
+        successSound.pause();
+        successSound.currentTime = 0;
+        successSound.play();
+
+        document.getElementById('response').innerHTML = '<div class="success">COMBO ' + comboCount + '!</div>';
+    } else {
+        goodSound.pause();
+        goodSound.currentTime = 0;
+        goodSound.play();
+
+        document.getElementById('response').innerHTML = '<div class="good">GOOD</div>';
+    }
+
     displayRemainingFootwork();
 }
 
-function showFail() {
+function fail() {
+    stepIndex = 0;
+    comboCount = 0;
+
     failSound.pause();
     failSound.currentTime = 0;
     failSound.play();
-    document.getElementById('response').innerHTML = '<div class="fail">Fail!</div>';
+    document.getElementById('response').innerHTML = '<div class="fail">MISS!</div>';
 }
 
 
@@ -235,6 +264,22 @@ function updateStatus() {
             }
         }
 
+
+        // Only consider the first instance of the foil going down
+        if (foilReset) {
+             if (pressedButtons.indexOf(FOIL) > -1) {
+                 pressedButtons = pressedButtons.filter(button => button !== FOIL);
+             } else {
+                 foilReset = false;
+             }
+        } else {
+            if (pressedButtons.indexOf(FOIL) > -1) {
+                foilReset = true;
+            }
+        }
+
+
+
         // Its okay to hit the target whenever you want
         if (JSON.stringify(currentFootwork.steps[stepIndex].sort()) === JSON.stringify(pressedButtons.sort())) {
             stepIndex += 1;
@@ -250,27 +295,14 @@ function updateStatus() {
 
             console.log('Yup');
         } else if (pressedButtons.length !== 0 && JSON.stringify(lastPressedButtons.sort()) !== JSON.stringify(pressedButtons.sort())) {
-            showFail();
-            stepIndex = 0;
+            fail();
             console.log('Reset', lastPressedButtons, pressedButtons);
             lastPressedButtons = pressedButtons;
         }
 
         if (stepIndex === currentFootwork.steps.length) {
-            successCount +=1;
-            stepIndex = 0;
-            if (footworkArray.length > 0) {
-                currentFootwork = footworkArray.shift();
-
-                let randomFootwork = undefined;
-                while (randomFootwork === undefined) {
-                    randomFootwork = footworkDefinitionArray[Math.floor(Math.random() * footworkArray.length)];
-                }
-                footworkArray.push(randomFootwork)
-                showSuccess()
-            }
+            success()
         }
-
 
         let axes = d.getElementsByClassName("axis");
         for (let i=0; i<controller.axes.length; i++) {

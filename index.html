@@ -73,14 +73,18 @@
         }
 
         #response {
-            height: 80px;
+            width: 100%;
+            position: absolute;
+            text-align: center;
+            top: 350px;
             overflow: hidden;
         }
 
         #response div {
             height: 80px;
-            font-size: 3em;
             animation: slide-up 0.8s ease;
+            margin: auto;
+            width: 500px;
             text-align: center;
             opacity: 0;
         }
@@ -113,10 +117,19 @@
 
         .success {
             color: green;
+            font-size: 5em;
+            font-weight: bold;
+        }
+
+        .good {
+            color: blue;
+            font-size: 3.5em;
+            font-weight: bold;
         }
 
         .fail {
             color: red;
+            font-size: 4em;
         }
 
         #target {
