@@ -12,90 +12,127 @@ let rAF = window.mozRequestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
     window.requestAnimationFrame;
 
+const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
 
-const FRONT_FOOT = 2;
-const MIDDLE = 13;
-const BACK_FOOT = 3;
-const FOIL = 8;
-const usedButtons = [FRONT_FOOT, MIDDLE, BACK_FOOT, FOIL];
+let BUTTONS = {
+    FRONT_FOOT: 2,
+    MIDDLE: 13,
+    BACK_FOOT: 3,
+    FOIL: 8,
+};
+
+if (isMac) {
+    BUTTONS = {
+        FRONT_FOOT: 3,
+        MIDDLE: 102,
+        BACK_FOOT: 0,
+        FOIL: 8,
+    };
+}
+
+
+let usedButtons = [BUTTONS.FRONT_FOOT, BUTTONS.MIDDLE, BUTTONS.BACK_FOOT, BUTTONS.FOIL];
 
 let foilReset = false;
+let spacebarPressed = false;
+let useSpacebar = false;
+
+window.onkeydown = function(event) {
+    if (event.code === 'Space') {
+        spacebarPressed = true;
+        useSpacebar = true;
+    }
+
+    if (event.code === 'Tab') {
+        const log = document.getElementById('log');
+        if (log.className === 'show') {
+            log.className = '';
+        } else {
+            log.className = 'show';
+        }
+    }
+};
+window.onkeyup = function(event) {
+    if (event.code === 'Space') {
+        spacebarPressed = false;
+    }
+};
 
 const footworkDefinitionArray = [
     {
         name: 'Step Forward, Step Back',
         steps:  [
-            [MIDDLE],
-            [FRONT_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Step Forward, Hit, Step back',
         steps:  [
-            [MIDDLE],
-            [FRONT_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT, BACK_FOOT, FOIL],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT, BUTTONS.FOIL],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Step Forward, Duck, Step Back',
         steps:  [
-            [MIDDLE],
-            [FRONT_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT, BACK_FOOT, MIDDLE],
-            [FRONT_FOOT,BACK_FOOT],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT, BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT,BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Step Forward, Appel, Step Back',
         steps:  [
-            [MIDDLE],
-            [FRONT_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [BACK_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Shuffle Step, Hit, Step Back',
         steps:  [
-            [MIDDLE],
-            [BACK_FOOT],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT, BACK_FOOT, FOIL],
-            [FRONT_FOOT, BACK_FOOT],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT, BUTTONS.FOIL],
+            [BUTTONS.FRONT_FOOT, BUTTONS.BACK_FOOT],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Half Step, Hit, Recover',
         steps:  [
-            [MIDDLE],
-            [FRONT_FOOT],
-            [FRONT_FOOT, FOIL],
-            [FRONT_FOOT],
-            [MIDDLE]
+            [BUTTONS.MIDDLE],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.FRONT_FOOT, BUTTONS.FOIL],
+            [BUTTONS.FRONT_FOOT],
+            [BUTTONS.MIDDLE]
         ]
     },
     {
         name: 'Appel',
         steps:  [
-            [MIDDLE],
+            [BUTTONS.MIDDLE],
             [],
-            [MIDDLE]
+            [BUTTONS.MIDDLE]
         ]
     },
 ];
@@ -148,7 +185,7 @@ function success() {
     while (randomFootwork === undefined) {
         randomFootwork = footworkDefinitionArray[Math.floor(Math.random() * footworkArray.length)];
     }
-    footworkArray.push(randomFootwork)
+    footworkArray.push(randomFootwork);
 
     comboCount += 1;
 
@@ -248,7 +285,7 @@ function updateStatus() {
                 val = val.value;
             }
 
-            if (i === FOIL) {
+            if (i === BUTTONS.FOIL && useSpacebar === false) {
                 pressed = !pressed;
             }
 
@@ -264,21 +301,29 @@ function updateStatus() {
             }
         }
 
+        controller.axes.forEach((axis, index) => {
+            if (axis === 1) {
+                // add 100 to axes
+                pressedButtons.push(i + 100);
+            }
+        });
 
-        // Only consider the first instance of the foil going down
+        if (useSpacebar && spacebarPressed) {
+            pressedButtons.push(BUTTONS.FOIL);
+        }
+
+        // Only consider the first instance of the BUTTONS.FOIL going down
         if (foilReset) {
-             if (pressedButtons.indexOf(FOIL) > -1) {
-                 pressedButtons = pressedButtons.filter(button => button !== FOIL);
+             if (pressedButtons.indexOf(BUTTONS.FOIL) > -1) {
+                 pressedButtons = pressedButtons.filter(button => button !== BUTTONS.FOIL);
              } else {
                  foilReset = false;
              }
         } else {
-            if (pressedButtons.indexOf(FOIL) > -1) {
+            if (pressedButtons.indexOf(BUTTONS.FOIL) > -1) {
                 foilReset = true;
             }
         }
-
-
 
         // Its okay to hit the target whenever you want
         if (JSON.stringify(currentFootwork.steps[stepIndex].sort()) === JSON.stringify(pressedButtons.sort())) {
@@ -286,7 +331,7 @@ function updateStatus() {
             lastPressedButtons = pressedButtons;
 
             if (stepIndex < currentFootwork.steps.length) {
-                if (currentFootwork.steps[stepIndex].indexOf(FOIL) > -1) {
+                if (currentFootwork.steps[stepIndex].indexOf(BUTTONS.FOIL) > -1) {
                     showTarget();
                 } else {
                     hideTarget();
