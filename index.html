@@ -14,7 +14,9 @@
     You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
     -->
-    <script type="text/javascript" src="gamepadtest.js"></script>
+    <script type="text/javascript" src="buttonDefinitions.js"></script>
+    <script type="text/javascript" src="footworkDefinitions.js"></script>
+    <script type="text/javascript" src="game.js"></script>
     <style>
         #log {
             display:none;
@@ -71,10 +73,18 @@
         .currentAction {
             font-size: 4.5em;
             font-weight: bold;
-            color: green;
+            color: blue;
 
             height: 300px;
             animation: slide-up-stay 0.8s ease;
+        }
+
+        .currentAction.scoring {
+            color: green;
+        }
+
+        .currentAction.fail {
+            color: indianred;
         }
 
         #response {
@@ -158,12 +168,57 @@
             margin-top: 0;
         }
 
+        #displayButtons {
+            position: absolute;
+            left: 40px;
+            top: 40%;
+        }
+
+        #displayButtons td {
+            background-color: green;
+            width: 100px;
+            height: 100px;
+        }
+
+        #displayButtons td#Foil {
+            border-radius: 100px;
+        }
+
+        #displayButtons td.pressed {
+            background-color: yellowgreen;
+        }
+
+        #displayButtons td#actionTimer {
+            background-color: transparent;
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div id="log"></div>
 <h2 id="start">Press a button on your controller to start</h2>
 <div id="response"></div>
+
+<table id="displayButtons">
+    <tr>
+        <td id="actionTimer">
+        </td>
+    </tr>
+    <tr>
+        <td id="Foil"></td>
+    </tr>
+    <tr>
+        <td id="Top"></td>
+    </tr>
+    <tr>
+        <td id="Middle"></td>
+    </tr>
+    <tr>
+        <td id="Bottom"></td>
+    </tr>
+</table>
 <div id="footworkActions"></div>
 <div id="target"></div>
 </body>
